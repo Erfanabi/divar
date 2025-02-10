@@ -4,6 +4,7 @@ const path = require("path");
 dotenv.config();
 
 const connectDB = require(path.join(__dirname, "config", "mongo.config"));
+const swaggerDocs = require(path.join(__dirname, "config", "swagger.config"));
 
 async function main() {
   const app = express()
@@ -14,6 +15,9 @@ async function main() {
 
   // اتصال به دیتابیس
   await connectDB();
+
+  // راه‌اندازی Swagger
+  swaggerDocs(app);
 
   app.listen(port, () => {
     console.log(`Example app listening on port ${port}`)
