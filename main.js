@@ -3,8 +3,11 @@ const dotenv = require('dotenv');
 const path = require("path");
 dotenv.config();
 
-const connectDB = require(path.join(__dirname, "config", "mongo.config"));
-const swaggerDocs = require(path.join(__dirname, "config", "swagger.config"));
+const connectDB = require(path.join(__dirname, "src", "config", "mongo.config"));
+const swaggerDocs = require(path.join(__dirname, "src", "config", "swagger.config"));
+const mainRouter = require("./src/app.routes");
+const AllExceptionHandler = require("./src/common/exception/all-exception.handler");
+const notFoundError = require("./src/common/exception/not-found.handler");
 
 async function main() {
   const app = express()
@@ -18,6 +21,14 @@ async function main() {
 
   // راه‌اندازی Swagger
   swaggerDocs(app);
+
+  app.use(mainRouter)
+
+  // هندل کردن استثناها (خطاهای عمومی)
+  app.use(AllExceptionHandler);
+
+  // هندل کردن خطای 404 (مسیر پیدا نشد)
+  app.use(notFoundError);
 
   app.listen(port, () => {
     console.log(`Example app listening on port ${port}`)
