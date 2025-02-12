@@ -1,5 +1,6 @@
 const authService = require('./auth.service');
 const autoBind = require('auto-bind');
+const NodeEnv = require("../../common/constant/env.enum");
 
 class AuthController {
   #service;
@@ -39,6 +40,14 @@ class AuthController {
     try {
       // فراخوانی متد checkOTP از AuthService
       const response = await this.#service.checkOTP(mobile, otp);
+
+      // ذخیره توکن در کوکی
+      res.cookie('access_token', response.token, {
+        httpOnly: true, // از دسترسی جاوااسکریپت به کوکی جلوگیری می‌کند
+        secure: process.env.NODE_ENV === NodeEnv.Production, // در صورت استفاده از HTTPS، فقط در این حالت توکن در کوکی ذخیره می‌شود
+        maxAge: 3600000, // تنظیم زمان انقضای کوکی (مثلاً یک ساعت)
+      });
+
       res.status(200).json(response); // ارسال پاسخ موفقیت‌آمیز
     } catch (error) {
       next(error); // ارسال خطا به میانه‌رو (middleware)

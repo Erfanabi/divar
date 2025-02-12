@@ -1,5 +1,6 @@
 const express = require('express')
 const dotenv = require('dotenv');
+const cookieParser = require('cookie-parser');
 const path = require("path");
 dotenv.config();
 
@@ -15,6 +16,9 @@ async function main() {
 
   app.use(express.json())
   app.use(express.urlencoded({ extended: true }))
+
+  app.use(cookieParser());
+
 
   // اتصال به دیتابیس
   await connectDB();
