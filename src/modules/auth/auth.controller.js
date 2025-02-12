@@ -9,11 +9,21 @@ class AuthController {
     this.#service = authService;
   }
 
-  sendOTP(req, res, next) {
-    try {
+  // متد ارسال OTP
+  async sendOTP(req, res, next) {
+    const { mobile } = req.body; // دریافت شماره موبایل از درخواست
 
+    // بررسی که آیا شماره موبایل ارسال شده یا خیر
+    if (!mobile) {
+      return res.status(400).json({ message: 'Mobile number is required' });
+    }
+
+    try {
+      // فراخوانی متد sendOTP از AuthService
+      const response = await this.#service.sendOTP(mobile);
+      res.status(200).json(response); // ارسال پاسخ موفقیت‌آمیز
     } catch (error) {
-      next(error);
+      next(error); // ارسال خطا به میانه‌رو (middleware)
     }
   }
 
