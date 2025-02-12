@@ -1,8 +1,10 @@
-const UserModel = require("../user/user.module");
 const autoBind = require("auto-bind");
+const jwt = require('jsonwebtoken');
+const UserModel = require("../user/user.module");
 
 class AuthService {
   #model
+  #secret = process.env.JWT_SECRET_KEY;
 
   constructor() {
     autoBind(this);
@@ -63,14 +65,15 @@ class AuthService {
         throw new Error('Invalid OTP');
       }
 
-      if (!user.verifiedMobile) {
-        // تایید شماره موبایل و حذف OTP پس از تایید
-        user.verifiedMobile = true;
-        user.otp = null; // حذف OTP بعد از تایید
-        await user.save();
-      }
+      // تایید شماره موبایل و حذف OTP پس از تایید
+      user.verifiedMobile = true;
+      user.otp = null; // حذف OTP بعد از تایید
+      await user.save();
 
-      return { message: 'Mobile verified successfully', user };
+      // تولید توکن
+      const token = this.signToken({ userId: user._id, mobile: user.mobile });
+
+      return { message: 'Mobile verified successfully', token, user };
     } catch (error) {
       throw new Error('Error in checking OTP: ' + error.message);
     }
@@ -78,6 +81,14 @@ class AuthService {
 
   logout() {
   }
+
+  signToken(payload) {
+    return jwt.sign(payload, this.#secret, { expiresIn: "1y" });
+  };
+
+  verifyToken(token) {
+    return jwt.verify(token, this.#secret);
+  };
 }
 
 module.exports = new AuthService();
