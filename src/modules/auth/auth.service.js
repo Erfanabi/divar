@@ -43,7 +43,37 @@ class AuthService {
     }
   }
 
-  checkOTP(mobile, code) {
+// تایید OTP
+  async checkOTP(mobile, code) {
+    try {
+      // پیدا کردن کاربر با استفاده از موبایل
+      const user = await this.#model.findOne({ mobile });
+
+      if (!user) {
+        throw new Error('User not found');
+      }
+
+      // بررسی اینکه آیا OTP منقضی نشده باشد
+      if (new Date() > new Date(user.otp.expireIn)) {
+        throw new Error('OTP has expired');
+      }
+
+      // بررسی اینکه کد وارد شده با کد ذخیره شده برابر باشد
+      if (user.otp.code !== code) {
+        throw new Error('Invalid OTP');
+      }
+
+      if (!user.verifiedMobile) {
+        // تایید شماره موبایل و حذف OTP پس از تایید
+        user.verifiedMobile = true;
+        user.otp = null; // حذف OTP بعد از تایید
+        await user.save();
+      }
+
+      return { message: 'Mobile verified successfully', user };
+    } catch (error) {
+      throw new Error('Error in checking OTP: ' + error.message);
+    }
   }
 
   logout() {
