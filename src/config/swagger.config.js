@@ -18,7 +18,8 @@ const swaggerOptions = {
       },
     ],
   },
-  apis: [path.join(__dirname, 'routes', '*.js')], // مسیر فایل‌های روت شما که باید مستنداتشان تولید شود
+  // apis: [path.join(__dirname, 'src', 'modules', '*.swagger.js')], // مسیر فایل‌های روت شما که باید مستنداتشان تولید شود
+  apis: [process.cwd() + "/src/modules/**/*.swagger.js"], // مسیر فایل‌های روت شما که باید مستنداتشان تولید شود
 };
 
 // تولید مستندات Swagger
