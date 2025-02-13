@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const UserModel = require("../../modules/user/user.module");
+const UserModel = require("../../modules/user/user.model");
 
 const Authorization = async (req, res, next) => {
   const token = req.cookies.access_token; // دریافت توکن از کوکی‌ها

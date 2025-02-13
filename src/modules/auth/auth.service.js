@@ -1,6 +1,6 @@
 const autoBind = require("auto-bind");
 const jwt = require('jsonwebtoken');
-const UserModel = require("../user/user.module");
+const UserModel = require("../user/user.model");
 
 class AuthService {
   #model
