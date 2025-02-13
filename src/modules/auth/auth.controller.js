@@ -55,8 +55,13 @@ class AuthController {
   }
 
   logout(req, res, next) {
-    try {
+    const user = req.user;
 
+    try {
+      res.status(200).json({
+        message: 'Welcome to your profile',
+        user: user // ارسال اطلاعات کاربر به کاربر
+      });
     } catch (error) {
       next(error);
     }
