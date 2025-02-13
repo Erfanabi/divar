@@ -79,7 +79,22 @@ class AuthService {
     }
   }
 
-  logout() {
+  // خروج از سیستم (حذف توکن‌ها یا اطلاعات نشست)
+  async logout(userId) {
+    try {
+      const user = await this.#model.findById(userId);
+      if (!user) {
+        throw new Error('User not found');
+      }
+
+      // فرض کنید که توکن یا اطلاعات نشست را پاک می‌کنیم
+      user.token = null; // یا هر روش دیگری برای مدیریت نشست یا توکن
+      await user.save();
+
+      return { message: 'Logged out successfully' };
+    } catch (error) {
+      throw new Error('Error in logging out: ' + error.message);
+    }
   }
 
   signToken(payload) {

@@ -1,6 +1,7 @@
 const authService = require('./auth.service');
 const autoBind = require('auto-bind');
 const NodeEnv = require("../../common/constant/env.enum");
+const CookieNames = require("../../common/constant/cookie.enum");
 
 class AuthController {
   #service;
@@ -42,7 +43,7 @@ class AuthController {
       const response = await this.#service.checkOTP(mobile, otp);
 
       // ذخیره توکن در کوکی
-      res.cookie('access_token', response.token, {
+      res.cookie(CookieNames.AccessToken, response.token, {
         httpOnly: true, // از دسترسی جاوااسکریپت به کوکی جلوگیری می‌کند
         secure: process.env.NODE_ENV === NodeEnv.Production, // در صورت استفاده از HTTPS، فقط در این حالت توکن در کوکی ذخیره می‌شود
         maxAge: 3600000, // تنظیم زمان انقضای کوکی (مثلاً یک ساعت)
@@ -54,16 +55,23 @@ class AuthController {
     }
   }
 
-  logout(req, res, next) {
-    const user = req.user;
-
+  // متد خروج از سیستم
+  async logout(req, res, next) {
     try {
-      res.status(200).json({
-        message: 'Welcome to your profile',
-        user: user // ارسال اطلاعات کاربر به کاربر
+      // حذف کوکی از مرورگر کاربر
+      res.clearCookie(CookieNames.AccessToken, {
+        httpOnly: true, // جلوگیری از دسترسی جاوااسکریپت
+        secure: process.env.NODE_ENV === 'production', // در صورتی که از HTTPS استفاده می‌کنید
+        sameSite: 'Strict', // محافظت از کوکی در برابر حملات CSRF
       });
+
+      // در صورتی که توکن هم در پایگاه داده ذخیره شده باشد، آن را پاک کنید
+      const userId = req.user._id; // فرض بر این است که اطلاعات کاربر از قبل در req.user ذخیره شده
+      const response = await this.#service.logout(userId); // فراخوانی متد logout از AuthService
+
+      res.status(200).json(response); // ارسال پیام خروج موفق
     } catch (error) {
-      next(error);
+      next(error); // ارسال خطا به میانه‌رو (middleware)
     }
   }
 }
