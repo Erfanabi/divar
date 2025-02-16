@@ -48,6 +48,22 @@ class CategoryController {
     }
   }
 
+  async remove(req, res, next) {
+    try {
+      const { id } = req.params; // دریافت شناسه گزینه از پارامترهای URL
+
+      const isDeleted = await this.#service.remove(id); // حذف گزینه با شناسه مورد نظر
+
+      if (isDeleted) {
+        res.status(200).json({ message: "✅ گزینه و تمام گزینه‌های مرتبط با موفقیت حذف شدند." });
+      } else {
+        res.status(404).json({ message: "❌ گزینه یافت نشد یا حذف نشد." });
+      }
+    } catch (error) {
+      next(error); // ارسال خطا به middleware برای مدیریت خطاها
+    }
+  }
+
 }
 
 module.exports = new CategoryController();

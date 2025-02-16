@@ -10,5 +10,7 @@ router.get('/all', CategoryController.find); // دریافت لیست دسته�
 
 router.get('/:slug', CategoryController.findBySlug); // دریافت دسته‌بندی بر اساس slug
 
+router.delete("/:id", CategoryController.remove)
+
 
 module.exports = { CategoryRouter: router };
