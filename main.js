@@ -33,6 +33,7 @@ async function main() {
 
   // هندل کردن خطای 404 (مسیر پیدا نشد)
   app.use(notFoundError);
+  // NotFoundHandler(app); // به این روش هم می شه نوشت
 
   app.listen(port, () => {
     console.log(`Example app listening on port ${port}`)

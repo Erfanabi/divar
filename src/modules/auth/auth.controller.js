@@ -2,6 +2,7 @@ const authService = require('./auth.service');
 const autoBind = require('auto-bind');
 const NodeEnv = require("../../common/constant/env.enum");
 const CookieNames = require("../../common/constant/cookie.enum");
+const { AuthMessage } = require("./auth.message");
 
 class AuthController {
   #service;
@@ -17,7 +18,7 @@ class AuthController {
 
     // بررسی که آیا شماره موبایل ارسال شده یا خیر
     if (!mobile) {
-      return res.status(400).json({ message: 'Mobile number is required' });
+      return res.status(400).json({ message: AuthMessage.NotFoundMobile });
     }
 
     try {
@@ -66,7 +67,7 @@ class AuthController {
       });
 
       // در صورتی که توکن هم در پایگاه داده ذخیره شده باشد، آن را پاک کنید
-      const userId = req.user._id; // فرض بر این است که اطلاعات کاربر از قبل در req.user ذخیره شده
+      const userId = req.user._id; // فرض بر این است که اطلاعات کاربر از قبل در req.user ذخیره شده (از میدلویر می گیریم)
       const response = await this.#service.logout(userId); // فراخوانی متد logout از AuthService
 
       res.status(200).json(response); // ارسال پیام خروج موفق

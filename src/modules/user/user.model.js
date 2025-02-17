@@ -21,6 +21,7 @@ const UserSchema = new Schema({
     default: null,
   },
   verifiedMobile: { type: Boolean, default: false, required: true },
+  accessToken: { type: String },
 }, { timestamps: true });
 
 const UserModel = mongoose.model('User', UserSchema);

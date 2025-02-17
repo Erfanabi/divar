@@ -1,6 +1,7 @@
 const AuthMessage = {
   SendOtpSuccessfully: "sent otp successfully",
   NotFound: "user not found ",
+  NotFoundMobile: "Mobile number is required",
   OtpCodeNotExpired: "otp code not expired please try later",
   OtpCodeExpired: "otp code expired please try to get new code",
   OtpCodeIsIncorrect: "otp code is incorrect",

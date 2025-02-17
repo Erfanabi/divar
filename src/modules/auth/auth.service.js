@@ -1,6 +1,7 @@
 const autoBind = require("auto-bind");
 const jwt = require('jsonwebtoken');
 const UserModel = require("../user/user.model");
+const { AuthMessage } = require("./auth.message");
 
 class AuthService {
   #model
@@ -39,7 +40,7 @@ class AuthService {
       // ارسال OTP به موبایل کاربر
       // await sendOtpToMobile(mobile, otpCode); // فرض بر این است که sendOtpToMobile ارسال پیامک را انجام می‌دهد
 
-      return { message: 'OTP sent successfully to mobile' };
+      return { message: AuthMessage.SendOtpSuccessfully };
     } catch (error) {
       throw new Error('Error in sending OTP: ' + error.message);
     }
@@ -52,28 +53,30 @@ class AuthService {
       const user = await this.#model.findOne({ mobile });
 
       if (!user) {
-        throw new Error('User not found');
+        throw new Error(AuthMessage.NotFound);
       }
 
       // بررسی اینکه آیا OTP منقضی نشده باشد
       if (new Date() > new Date(user.otp.expireIn)) {
-        throw new Error('OTP has expired');
+        throw new Error(AuthMessage.OtpCodeExpired);
       }
 
       // بررسی اینکه کد وارد شده با کد ذخیره شده برابر باشد
       if (user.otp.code !== code) {
-        throw new Error('Invalid OTP');
+        throw new Error(AuthMessage.OtpCodeIsIncorrect);
       }
-
-      // تایید شماره موبایل و حذف OTP پس از تایید
-      user.verifiedMobile = true;
-      user.otp = null; // حذف OTP بعد از تایید
-      await user.save();
 
       // تولید توکن
       const token = this.signToken({ userId: user._id, mobile: user.mobile });
 
-      return { message: 'Mobile verified successfully', token, user };
+      // تایید شماره موبایل و حذف OTP پس از تایید
+      user.verifiedMobile = true;
+      user.otp = null; // حذف OTP بعد از تایید
+      user.accessToken = token
+
+      await user.save();
+
+      return { message: AuthMessage.LoginSuccessfully, token, user };
     } catch (error) {
       throw new Error('Error in checking OTP: ' + error.message);
     }
@@ -84,14 +87,14 @@ class AuthService {
     try {
       const user = await this.#model.findById(userId);
       if (!user) {
-        throw new Error('User not found');
+        throw new Error(AuthMessage.NotFound);
       }
 
       // فرض کنید که توکن یا اطلاعات نشست را پاک می‌کنیم
-      user.token = null; // یا هر روش دیگری برای مدیریت نشست یا توکن
+      user.accessToken = null; // یا هر روش دیگری برای مدیریت نشست یا توکن
       await user.save();
 
-      return { message: 'Logged out successfully' };
+      return { message: AuthMessage.LogoutSuccessfully };
     } catch (error) {
       throw new Error('Error in logging out: ' + error.message);
     }
