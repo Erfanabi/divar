@@ -16,5 +16,7 @@ router.get("/", OptionController.find);
 
 router.delete("/:id", OptionController.deleteById);
 
+router.put("/:id", OptionController.update);
+
 
 module.exports = { OptionRouter: router };
