@@ -2,6 +2,7 @@ const express = require('express')
 const dotenv = require('dotenv');
 const cookieParser = require('cookie-parser');
 const path = require("path");
+const cors = require('cors');
 dotenv.config();
 
 const connectDB = require(path.join(__dirname, "src", "config", "mongo.config"));
@@ -19,6 +20,12 @@ async function main() {
 
   app.use(cookieParser());
 
+  // فعال‌سازی CORS
+  app.use(cors({
+    origin: 'http://localhost:4000',  // فقط درخواست‌ها از این دامنه مجاز هستند
+    methods: ['GET', 'POST'],         // فقط متدهای GET و POST مجاز هستند
+    allowedHeaders: ['Content-Type', 'Authorization'],  // فقط هدرهای خاص مجاز هستند
+  }));
 
   // اتصال به دیتابیس
   await connectDB();
