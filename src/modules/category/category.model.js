@@ -20,7 +20,14 @@ function autoPopulate(next) {
 }
 
 CategorySchema.pre("find", autoPopulate).pre("findOne", autoPopulate)
+// قبل از اجرای هر find و findOne، تابع autoPopulate اجرا شود.
+
 
 const CategoryModel = model("Category", CategorySchema);
 
 module.exports = CategoryModel
+
+// در Mongoose، زمانی که یک فیلد به مدل دیگری ارجاع (ref) داده شده باشد
+// ، مقدار آن به‌صورت پیش‌فرض فقط شامل شناسه (_id) آن مدل می‌شود.
+// اگر بخواهیم اطلاعات کامل مدل مرتبط را در کوئری دریافت کنیم،
+// باید از populate() استفاده کنیم.

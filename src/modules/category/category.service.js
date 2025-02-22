@@ -18,14 +18,18 @@ class CategoryService {
     try {
       // اگر این دسته‌بندی دارای والد (`parent`) باشد، باید والد را به آرایه parents اضافه کنیم
       if (categoryDto.parent) {
+        // اگر مقدار parent ارسال شده باشد،
+        // یعنی این یک زیرمجموعه (Subcategory) است و باید به والد متصل شود.
         const parentCategory = await this.#model.findById(categoryDto.parent);
 
         if (!parentCategory) {
           throw new Error(CategoryMessage.NotFound);
         }
+        // این کار باعث می‌شود که تمام مسیر والدین این دسته‌بندی به‌صورت سلسله‌مراتبی ذخیره شود.
         categoryDto.parents = [...parentCategory.parents, categoryDto.parent];
       }
 
+      // ✅ یک نمونه‌ی جدید از مدل دسته‌بندی (Category) ایجاد می‌شود.
       const newCategory = new this.#model(categoryDto);
       return await newCategory.save();
     } catch (error) {
@@ -36,7 +40,8 @@ class CategoryService {
   // دریافت تمام دسته‌بندی‌ها با اطلاعات والد-فرزند
   async findAll() {
     try {
-      return await this.#model.find({ parent: null }).populate("children").exec();
+      // یعنی دسته‌بندی‌هایی که والد ندارند (دسته‌بندی‌های سطح بالا یا ریشه‌ای).
+      return await this.#model.find({ parent: null });
     } catch (error) {
       throw new Error("خطا در دریافت دسته‌بندی‌ها: " + error.message);
     }
@@ -44,7 +49,7 @@ class CategoryService {
 
   async findBySlug(slug) {
     try {
-      return await this.#model.findOne({ slug }).populate("children").exec();
+      return await this.#model.findOne({ slug });
     } catch (error) {
       throw new Error("خطا در دریافت دسته‌بندی: " + error.message);
     }
@@ -69,6 +74,10 @@ class CategoryService {
       console.log("❌ حذف ناموفق بود. دسته‌بندی یافت نشد.");
     }
 
+    // در انتها، متد remove() یک مقدار boolean برمی‌گرداند:
+
+    //   اگر deletedCategory.deletedCount > 0 باشد (یعنی دسته‌بندی حذف شده باشد)، مقدار true برمی‌گرداند.
+    //   اگر دسته‌بندی حذف نشده باشد، مقدار false برمی‌گرداند.
     return deletedCategory.deletedCount > 0;
   }
 
