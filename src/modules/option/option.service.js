@@ -1,3 +1,4 @@
+const categoryService = require('../category/category.service');
 const autoBind = require("auto-bind");
 const slugify = require("slugify");
 const OptionModel = require("./option.model");
@@ -9,11 +10,13 @@ const { isValidObjectId } = require("mongoose");
 class OptionService {
   #model
   #categoryModel
+  #categoryService
 
   constructor() {
     autoBind(this);
     this.#model = OptionModel;
     this.#categoryModel = CategoryModel;
+    this.#categoryService = categoryService
   }
 
   // ایجاد یک گزینه جدید
@@ -21,7 +24,7 @@ class OptionService {
     try {
       // در ابتدا، شناسه دسته‌بندی (category) موجود در optionDto بررسی می‌شود تا از وجود آن در دیتابیس اطمینان حاصل شود.
       // اگر دسته‌بندی وجود نداشته باشد، به احتمال زیاد خطا تولید خواهد شد.
-      const category = await this.checkExistCategoryById(optionDto.category);
+      const category = await this.#categoryService.checkExistById(optionDto.category);
       // console.log(category);
 
       // گزینه با استفاده از slugify به فرمت اسلاگ تبدیل می‌شود
@@ -51,6 +54,18 @@ class OptionService {
     }
   }
 
+  // دریافت گزینه‌ها بر اساس شناسه دسته‌بندی
+  async findByCategoryId(categoryId) {
+    return await this.#model.find({ category: categoryId }, { __v: 0 }).populate([{
+      path: "category", select: { name: 1, slug: 1 }
+    }])
+  }
+
+  // دریافت یک گزینه خاص بر اساس شناسه
+  async findById(id) {
+    return await this.checkExistById(id)
+  }
+
   // دریافت تمام گزینه‌ها
   async find() {
     try {
@@ -63,24 +78,15 @@ class OptionService {
     }
   }
 
-  // دریافت یک گزینه خاص بر اساس شناسه
-  async findById(id) {
-    return await this.checkExistById(id)
-  }
-
-  // دریافت گزینه‌ها بر اساس شناسه دسته‌بندی
-  async findByCategoryId(categoryId) {
-    return await this.#model.find({ category: categoryId }, { __v: 0 }).populate([{
-      path: "category", select: { name: 1, slug: 1 }
-    }])
-  }
-
   // پیدا کردن دسته‌بندی بر اساس slug
   async findByCategorySlug(slug) {
     try {
       return await this.#model.aggregate([{
         $lookup: {
-          from: "categories", localField: "category", foreignField: "_id", as: "category"
+          from: "categories",      // نام مجموعه‌ای که می‌خواهید داده‌ها را از آن بگیرید
+          localField: "category",  // فیلدی در مجموعه فعلی که باید با فیلد مجموعه دیگر مقایسه شود
+          foreignField: "_id",     // فیلدی در مجموعه دیگر که با فیلد `localField` در مجموعه اصلی مقایسه خواهد شد
+          as: "category"           // نام فیلدی که داده‌های از مجموعه دیگر در آن قرار خواهند گرفت
         },
       }, {
         $unwind: "$category" // حذف آرایه
@@ -120,7 +126,7 @@ class OptionService {
     // 2. بررسی اعتبار `category` و تنظیم مقدار آن در `optionDto`
     if (optionDto.category && isValidObjectId(optionDto.category)) {
       // بررسی اینکه گزینه‌ای با این دسته بندی وجود دارد یا نه
-      const category = await this.checkExistCategoryById(optionDto.category);
+      const category = await this.#categoryService.checkExistById(optionDto.category);
       optionDto.category = category._id;
     } else {
       delete optionDto.category;
@@ -159,13 +165,6 @@ class OptionService {
 
   // ----------
 
-  // بررسی وجود دسته‌بندی
-  async checkExistCategoryById(id) {
-    const category = await this.#categoryModel.findById(id);
-    if (!category) throw new Error(OptionMessage.NotFound);
-    return category;
-  }
-
   // بررسی وجود option
   async checkExistById(id) {
     const option = await this.#model.findById(id);
@@ -179,7 +178,23 @@ class OptionService {
     if (isExist) throw new Error(OptionMessage.AlreadyExist);
     return null;
   }
-
 }
 
 module.exports = new OptionService();
+
+
+// from:
+//
+//   مشخص می‌کند که داده‌ها باید از کدام مجموعه گرفته شوند. در اینجا، نام مجموعه "categories" است.
+//   localField:
+//
+// فیلدی که در مجموعه فعلی (یعنی مدل اصلی شما، مثل Option) به عنوان ارجاع به مجموعه دیگر استفاده می‌شود.
+//   در این مثال، category فیلدی است که در مدل Option وجود دارد و شناسه دسته‌بندی (ID) را نگه می‌دارد.
+//   foreignField:
+//
+// فیلدی که در مجموعه دیگر (در اینجا categories) باید با localField مقایسه شود.
+//   در این مثال، _id فیلدی است که در مدل Category برای شناسایی هر دسته‌بندی استفاده می‌شود.
+//   as:
+//
+// مشخص می‌کند که نتیجه‌ی lookup در کدام فیلد قرار گیرد.
+//   در اینجا، تمام اطلاعاتی که از categories می‌آیند به صورت یک آرایه در فیلد category قرار خواهند گرفت.

@@ -104,7 +104,6 @@ class OptionController {
       next(error)
     }
   }
-
 }
 
 module.exports = new OptionController();
