@@ -18,6 +18,9 @@ async function main() {
   app.use(express.json())
   app.use(express.urlencoded({ extended: true }))
 
+  // تنظیم پوشه "public" به‌عنوان استاتیک
+  app.use('/public', express.static(path.join(__dirname, 'public')));
+
   app.use(cookieParser());
 
   // فعال‌سازی CORS

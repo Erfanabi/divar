@@ -3,7 +3,6 @@ const autoBind = require('auto-bind');
 const { PostMessage } = require("./post.message");
 const categoryService = require("../category/category.service");
 const { Types } = require("mongoose");
-const axios = require("axios");
 const { getAddressDetail } = require("../../common/utils/http");
 
 class CategoryController {
@@ -44,8 +43,7 @@ class CategoryController {
       const categories = await this.#service.findAll(); // متد findAll برای گرفتن لیست تمام دسته‌بندی‌های سطح اول
 
       return res.status(200).json({
-        message: 'تمام دسته‌بندی‌ها دریافت شدند.',
-        categories,
+        message: 'تمام دسته‌بندی‌ها دریافت شدند.', categories,
       });
 
     } catch (error) {
@@ -55,7 +53,9 @@ class CategoryController {
 
   async create(req, res, next) {
     try {
-      console.log(req.body);
+      // چه کسی این آگهی رو ایجاد کرده
+      const userId = req.user._id;
+
       const { title, lat, lng, description: content } = req.body;
 
       delete req.body['title'];
@@ -69,17 +69,11 @@ class CategoryController {
 
       const { address, district, province, city } = await getAddressDetail(lat, lng)
 
+      const images = req.files.map(file => `/public/upload/${file.filename}`);
+
       await this.#service.create({
-        title,
-        content,
-        coordinate: [lat, lng],
-        images: [],
-        options,
-        // category: new Types.ObjectId(category)
-        address,
-        province,
-        city,
-        district,
+        userId, title, content, coordinate: [lat, lng], images, options, // category: new Types.ObjectId(category)
+        address, province, city, district,
       });
 
       return res.status(200).json({ message: PostMessage.Created })
@@ -88,11 +82,26 @@ class CategoryController {
     }
   }
 
-  async remove(req, res, next) {
+  async findMyPosts(req, res, next) {
     try {
+      const userId = req.user._id;
+      const posts = await this.#service.find(userId);
+
+      return res.status(200).json({ message: PostMessage.Founded, posts });
 
     } catch (error) {
-      next(error); // ارسال خطا به middleware برای مدیریت خطاها
+      next(error);
+    }
+  }
+
+  async remove(req, res, next) {
+    try {
+      const { id } = req.params;
+      await this.#service.remove(id);
+
+      return res.status(200).json({ message: PostMessage.Deleted });
+    } catch (error) {
+      next(error);
     }
   }
 }

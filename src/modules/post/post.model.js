@@ -2,7 +2,7 @@ const { Schema, Types, model } = require("mongoose");
 
 const PostSchema = new Schema({
   title: { type: String, required: true }, // عنوان آگهی
-  userId: { type: Types.ObjectId, required: false }, // شناسه کاربر
+  userId: { type: Types.ObjectId, required: false }, // شناسه کاربر (کی این آگهی رو ایجاد کرده)
   amount: { type: Number, required: true, default: 0 }, // مقدار یا قیمت
   content: { type: String, required: true }, // محتوای آگهی
   category: { type: Types.ObjectId, ref: "Category", required: false }, // دسته‌بندی آگهی
