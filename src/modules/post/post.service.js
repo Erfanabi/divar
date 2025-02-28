@@ -35,9 +35,8 @@ class PostService {
   }
 
   async getCategoryOptions(categoryId) {
-    // console.log({ categoryId })
     try {
-      return  await this.#optionModel.find({ category: categoryId });
+      return await this.#optionModel.find({ category: categoryId });
 
     } catch (error) {
       throw new Error("خطا در دریافت آپشن ها: " + error.message);
@@ -64,6 +63,10 @@ class PostService {
         }
       }
     ]);
+  }
+
+  async create(dto) {
+    return await this.#model.create(dto);
   }
 }
 
